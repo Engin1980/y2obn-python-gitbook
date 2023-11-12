@@ -1,13 +1,38 @@
 ---
 description: >-
-  V této sekci si vytvoříme jednoduchou dětskou hru - generátor vět. Na vstupu
-  se nejdříve určí množina slov - podmět, přísudek, předmět. Následně se na
-  stisk tlačítka z daného zadání generují náhodné v
+  V této sekci si vytvoříme jednoduchou dětskou hru - generátor vět. Ze vstupu
+  (náhodná slova - podmět, přísudek, předmět) se generuje náhodná věta.
 ---
 
 # Generátor vět
 
+## Příprava projektu
 
+Nejdříve ve složce vytvoříme soubor s projektem `sentence_generator.py` a vložíme do něj kód:
+
+{% code title="sentence_generator.py" lineNumbers="true" %}
+```python
+import streamlit as st
+import datetime
+import random
+
+st.set_page_config(layout="wide")
+
+st.header("Sentence generator")
+```
+{% endcode %}
+
+Poté vytvoříme spouštěcí soubor `start_sentence_generator.bat` s kódem:
+
+{% code title="start_sentence_generator.bat" %}
+```batch
+.\venv\scripts\activate.bat & streamlit run camera.py
+```
+{% endcode %}
+
+
+
+## Vytvoření základního rozhraní
 
 ```python
 import datetime
