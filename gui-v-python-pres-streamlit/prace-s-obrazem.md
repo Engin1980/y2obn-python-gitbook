@@ -42,19 +42,43 @@ Do projektu připojíme knihovny, které budeme používat:
 * cv2 pro práci s kamerou/videem a operace s obrazem,
 * numpy (jako  zkratku `np`) pro práci s maticemi
 
-Dále umístíme kód zobrazující nadpis na stránce a jeden prvek `placeholder`, který slouží jako zástupný symbol na stránce. Je to místo, které je aktuálně prázdné, v budoucnu však do něj můžeme vkládat libovolné prvky (my do něj budeme dávat postupně obrazové snímky z kamery - vždy nový snímek nahradí předchozí snímek).
+Dále umístíme kód zobrazující nadpis na stránce a jeden prvek `empty`, který slouží jako zástupný symbol na stránce. Je to místo, které je aktuálně prázdné, v budoucnu však do něj můžeme vkládat libovolné prvky (my do něj budeme dávat postupně obrazové snímky z kamery - vždy nový snímek nahradí předchozí snímek). Abychom mohli obsah prvku nahrazovat, potřebujeme si na něj odkaz uložit do proměné `hld_image`.
 
 ```python
 import streamlit as st
 import cv2
 import numpy as np
 
-st.header("Camera fun")
+st.header("Camera demo")
 
-hld_image = st.eompty()
+hld_image = st.empty()
 ```
 
+Po obnovení stránky se její obsah nezmění (nepřibyl žádný vizuálně reprezentovatelný prvek).&#x20;
 
+Do stránky nyní vložíme vyčítání dat z kamery:
+
+<pre class="language-python" data-title="camera.py" data-line-numbers><code class="lang-python"># ... předchozí kód
+
+<strong># cap = cv2.VideoCapture(0) # vyčítání z kamery PC/NB
+</strong>cap = cv2.VideoCapture("C:\\Users\\Vajgl\\Downloads\\Mlha1.mp4") # vyčítání z videa
+<strong>
+</strong><strong>while True:
+</strong><strong>    ret, frame = cap.read()
+</strong><strong>    if ret is False:
+</strong><strong>        st.text("Chyba nebo konec videa.")
+</strong><strong>        break
+</strong>
+    hld_image.image(frame)
+</code></pre>
+
+&#x20;Vytvoříme proměnnou `cap` (řádek 3/4), která načítá video zdroj  - řádek 3 ukazuje, jak otevří t připojení ke kameře na NB/PC, řádek 4 definuje jako zdroj video MP4
+
+Následně v "nekonečné smyčce" (řádek 6) provádíme vyčtení snímku z kamery (řádek 7). Pokud se snímek nepodařilo načíst (proměnná `ret` je `False`, řádek 8), vypíšeme na stránku chybu a smyčku ukončíme. Pokud se snímek načíst povedlo, pokračujeme řádkem 12, kde vložíme snímek `frame` jako obrázek do dříve vytvořeného zástupného prvku.
+
+Pokud nyní kód spustíme, uvidíme postupně zobrazované video.
+
+Následně v nekonečné smyčce vyčítáme jednotlivé snímky videa a zobrazujeme je jako obrázky v prvku `hld_image`:
 
 ```python
 import datetime
