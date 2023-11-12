@@ -449,7 +449,7 @@ if btn_generate:
     who_word = get_random_word(ss["who"])
     what_word = get_random_word(ss["what"])
     whom_word = get_random_word(ss["whom"])
-    if who_word is None or what_word is None or whom_word is not None:
+    if who_word is None or what_word is None or whom_word is None:
         st.text("Nejdříve je třeba zadat slovíčka. Nelze generovat větu.")
     else:
         st.text(who_word + " " + what_word + " " + whom_word + ".")
@@ -554,7 +554,7 @@ if btn_generate:
     who_word = get_random_word(ss["who"])
     what_word = get_random_word(ss["what"])
     whom_word = get_random_word(ss["whom"])
-    if who_word is None or what_word is None or whom_word is not None:
+    if who_word is None or what_word is None or whom_word is None:
         st.text("Nejdříve je třeba zadat slovíčka. Nelze generovat větu.")
     else:
         st.text(who_word + " " + what_word + " " + whom_word + ".")
