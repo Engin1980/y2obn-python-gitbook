@@ -1,4 +1,58 @@
+---
+description: >-
+  Cílem tohoto úkolu je vytvořit aplikaci, která bude snímat obraz z kamery
+  (nebo z MP4 souboru) a zobrazovat jej. Následně lze obraz zesvětlit/ztmavit,
+  případně zapnout detekci hran.
+---
+
 # Práce s obrazem
+
+
+
+## Vytvoření projektu
+
+Aplikaci budeme vytvářet do souboru `camera.py`. Vytvoříme ve naší složce nový soubor `camera.py`.&#x20;
+
+Do souboru vložíme opět základní text:
+
+{% code title="camera.py" lineNumbers="true" %}
+```python
+import streamlit as st
+
+st.text("Ahoj")
+```
+{% endcode %}
+
+Dále ve složce projektu vytvoříme spouštěcí soubor `start_camera.bat`  a do něj vložíme kód:
+
+{% code title="start_camera.bat" %}
+```batch
+.\venv\scripts\activate.bat & streamlit run camera.py
+```
+{% endcode %}
+
+Nyní soubor `start_camera.bat` spustíme. Mělo by se opět otevřít okno prohlížeče s nápisem "Ahoj".
+
+## Příprava obsahu stránky
+
+Nyní už budeme pracovat pouze se souborem `camera.py`, kam budeme vkládat kód naší aplikace.
+
+Do projektu připojíme knihovny, které budeme používat:
+
+* cv2 pro práci s kamerou/videem a operace s obrazem,
+* numpy (jako  zkratku `np`) pro práci s maticemi
+
+Dále umístíme kód zobrazující nadpis na stránce a jeden prvek `placeholder`, který slouží jako zástupný symbol na stránce. Je to místo, které je aktuálně prázdné, v budoucnu však do něj můžeme vkládat libovolné prvky (my do něj budeme dávat postupně obrazové snímky z kamery - vždy nový snímek nahradí předchozí snímek).
+
+```python
+import streamlit as st
+import cv2
+import numpy as np
+
+st.header("Camera fun")
+
+hld_image = st.eompty()
+```
 
 
 
