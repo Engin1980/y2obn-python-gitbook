@@ -156,7 +156,86 @@ with colA:
 
 Na řádcích 7-15 se staráme o session-state (vysvětleno výše). Na řádku 17 vkládáme nadpis. Na řádku 19 vytváříme 3 sloupce. Do každého sloupce vložíme hlavičku (řádky 22, 27, 30). Do prvního sloupce navíc vložíme i výpis všech položek, které již jsou zadány - procházíme kolekci `ss["who"]` (řádek 23) a vypisujeme každé slovo (řádek 24). Nakonec vytvoříme tlačítko (které zatím nebude nic dělat) - řádek 32.
 
+Následně si ukážeme vkládání slov - pro každý sloupec trošku jiným způsobem.
 
+## První sloupec - vkládání slova
+
+U prvního sloupce budeme chtít vytvořit vedle sebe textové pole a tlačítko pro vložení. Do kódu (ve výše uvedeném výpisu mezi řádky 22 a 23) vložíme opět vygenerování sloupců a jejich obsahu:
+
+{% code lineNumbers="true" %}
+```python
+colAtxt, colAbtn = st.columns(2)
+with colAtxt:
+    who = st.text_input("Nové 'kdo'", label_visibility="collapsed")
+with colAbtn:
+    btn_who = st.button("Vlož")
+    if btn_who:
+        ss["who"].append(who)
+```
+{% endcode %}
+
+Na řádku 1 vytvoříme 2 sloupce - txt a btn. V prvním bude textové pole, v druhém tlačítko. Do prvního tedy vložíme textové pole nazvané `who` (a potlačíme zobrazení jeho "labelu") - řádek 3. Do druhého sloupce vložíme tlačítko `btn_who` (řádek 5). Zároveň ihned na řádku 6 kontrolujeme, zda tlačítko někdo nestiskl (pokud by se nejednalo o první procházení kódu) - pokud stiskl, vezmeme hodnotu z `who` a vložíme ji do listu hodnot `ss["who"]` - řádek 7.
+
+{% hint style="info" %}
+Většina prvků v streamlit má u sebe připojen "label" - nápis, který říká, co je daný prvek zač nebo co s ním má uživatel provádět. My tento nápis nechceme zobrazit, proto jeho zobrazení potlačíme parametrem `label_visibility="collapsed"`. Možné hodnoty jsou visible/hidden/collapsed, můžete si vyzkoušet jejich chování.
+{% endhint %}
+
+Když nyní kód spustíme, zadáme do textového pole text a stiskneme tlačítko, obsah textového pole se přiřadí do seznamu hodnot.
+
+Nevýhodou tohoto postup je, že:
+
+* se stránka obnoví 2x - poprvé, když kurzor opustí textové pole, a podruhé, když stisknete tlačítko. Povšimněte si změny hodnot `ss["refresh"]`, pokud textové pole opustíte například stiskem klávesy Tab;
+* se obsah textového pole nesmaže po vložení hodnoty.
+
+Obě tyto nevýhody zkusíme vyřešit v dalším sloupci.
+
+Kompletní aktuální kód `sentence_generator.py`:
+
+{% code title="sentence_generator.py" lineNumbers="true" %}
+```python
+import streamlit as st
+import datetime
+import random
+
+st.set_page_config(layout="wide")
+
+# session state
+ss = st.session_state
+ss["refresh"] = datetime.datetime.now()
+if "initialized" not in ss:
+    ss["initialized"] = True
+    ss["who"] = ["Pračka", "Jezevec"]
+    ss["what"] = []
+    ss["whom"] = []
+st.write(st.session_state)
+
+st.header("Sentence generator")
+
+colA, colB, colC = st.columns(3)
+
+with colA:
+    st.subheader("Kdo")
+
+    colAtxt, colAbtn = st.columns(2)
+    with colAtxt:
+        who = st.text_input("Nové 'kdo'", label_visibility="collapsed")
+    with colAbtn:
+        btn_who = st.button("Vlož")
+        if btn_who:
+            ss["who"].append(who)
+
+    for word in ss["who"]:
+        st.text(word)
+
+with colB:
+    st.subheader("Co")
+
+with colC:
+    st.subheader("Komu/Čemu")
+
+btnGenerate = st.button("G e n e r u j   v ě t u")
+```
+{% endcode %}
 
 
 
