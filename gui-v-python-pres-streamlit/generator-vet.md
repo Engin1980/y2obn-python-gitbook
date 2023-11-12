@@ -22,6 +22,10 @@ st.header("Sentence generator")
 ```
 {% endcode %}
 
+{% hint style="info" %}
+Budeme potřebovat celou šířku stránky. Streamlit v základu generuje obsah pouze do úzkého sloupce na stránce. Pro vynucení využití celé šířky zadáváme příkaz dle řádku 5.
+{% endhint %}
+
 Poté vytvoříme spouštěcí soubor `start_sentence_generator.bat` s kódem:
 
 {% code title="start_sentence_generator.bat" %}
@@ -30,9 +34,137 @@ Poté vytvoříme spouštěcí soubor `start_sentence_generator.bat` s kódem:
 ```
 {% endcode %}
 
+## Session-state - jak uchovávat data
 
+Před samotnou tvorbou aplikace se musíme seznámit s principem práce se stránkou a uchovávání dat.
+
+Při spuštění aplikace projde streamlit kód stránky (náš `sentence_generator.py`) a vygeneruje odpovídající kód, který se zobrazí v prohlížeči. V případě, že některý z prvků na stránce zjistí svou změnu (například se stiskne tlačítko), provede se obnovení stránky a při tomto obnovení se  znovu projde kód stránky (tedy opět soubor `sentence_generator.py`) a opět se vygeneruje kód stránky spolu s odpovídajícími změnami. Jak tedy pozná streamlit, že stránká prochází znovu a má zachovat data?
+
+V stránce se mezi jednotlivými obnoveními udržuje tzv. slovník - dvojice hodnot "klíč-hodnota", která obsahuje informace o všech prvcích na stránce. Při prvním procházení je slovník prázdný, ale při akcí vyvolanou na stránce (například při stisku tlačítka "x") se do slovníku uloží informace o akci (např. u tlačítka se uloži dvojice "x=True") a při opětovném procházení stránky se již stránka kreslí s ohledem na hodnoty ve slovníku.
+
+Hodnoty slovníku dostaneme přes příkaz `st.session_state`. Abychom nemuseli opakovat takto dlouhý příkaz, uložíme si slovník do proměnné `ss`:&#x20;
+
+<pre class="language-python" data-line-numbers><code class="lang-python">ss = st.session_state
+<strong>ss["refresh"] = datetime.datetime.now()
+</strong><strong>if "initialized" not in ss:
+</strong><strong>    ss["initialized"] = True
+</strong><strong>st.write(st.session_state)
+</strong><strong>
+</strong><strong>st.button("Stiskni mne", key="btn")
+</strong></code></pre>
+
+Na řádku 1 vložíme hodnotu do proměnné `ss`. Na řádku 2 vložíme do slovníku pod klíč `refresh` hodnotu aktuálního datumu a času. Na řádku 3 se ptáme, zda již byl slovník inicializován - pokud ne, jedná se o první průchod stránkou. Pokud ano, inicializaci přeskočíme. Na řádku 4 vložíme informaci, že inicializace proběhla (později tento kód rozšíříme). Nakonec, na řádku 5 vypíšeme slovník do stránky (později můžeme tento příkaz zakomentovat, aby nám nekazil vzhled výsledné stránky).  Na řádku 7 přidáme do stránky tlačítko, kterému přiřadíme klíč "btn".
+
+{% hint style="info" %}
+Hodnotu `ss["refresh"]` jsme vložili jen jako informaci o obnovení stránky. Díky výpisu této hodnoty vidíme, kdy přesně proběhne obnovení stránky (které jinak může být díky rychlosti prohlížeče téměř nespatřitelné).
+{% endhint %}
+
+Uvidíme, že při prvním spuštění stránky se zobrazí:
+
+```
+{
+"initialized":true
+"refresh":"datetime.datetime(2023, 11, 12, 18, 6, 24, 397697)"
+}
+```
+
+Pokud stiskneme tlačítko, zobrazí se:
+
+```
+{
+"initialized":true
+"refresh":"datetime.datetime(2023, 11, 12, 18, 6, 58, 89161)"
+"btn":true
+}
+```
+
+Po stisku tlačítka se tedy uložila informace o tlačítku - `"btn":true`.
+
+{% hint style="info" %}
+V příkladech dříve i později jsme používali/budeme používat prvky bez přiřazeného klíče `key`. V tom případě dostane prvek klíč vygenerovaný automaticky. Prvky s automatickým klíčem však neuvidíme ve výpisu získaného přes `st.write(st.session_state)`. Přesto však existují.
+
+V tom případě typicky hodnotu daného prvku používáme přes proměnnou, do které jsme vytvořený prvek vložíli. Tedy například bez klíče provedeme:
+
+```
+btn = st.button("a")
+if btn:
+    ...
+```
+
+S klíčem bude podobný kód vypadat takto:
+
+```
+st.button("a", key="btn")
+if st.session_state["btn"]:
+    ...
+```
+
+Použití klíče umožňuje jednodušší práci s prvkem, pokud s ním potřebujeme dělat nějaké složitější operace - ukážeme si dále.
+{% endhint %}
+
+## Inicializace stránky
+
+Nyní, když víme, jak se uchovávají data, můžeme provést inicializaci stránky. Budeme potřebovat tři listy - pro podmět, přísudek a předmět, vazbu "kdo - co - komu/čemu". Nazveme je `who`, `what` a `whom`.
+
+```python
+if "initialized" not in ss:
+    ss["initialized"] = True
+    ss["who"] = ["Pračka", "Jezevec"]
+    ss["what"] = []
+    ss["whom"] = []
+```
+
+Do první kolekce jsme vložili i nějaké výchozí hodnoty (můžete rozšířit později), aby hned bylo na stránce co zobrazovat.
 
 ## Vytvoření základního rozhraní
+
+Nyní vytvoříme základní rozhraní aplikace. Budeme pořebovat tři sloupce (pro kdo-co - komu/čemu). Pod tím zobrazíme tlačítko na generování věty.
+
+<pre class="language-python" data-title="sentence_generator.py" data-line-numbers><code class="lang-python">import streamlit as st
+import datetime
+import random
+
+st.set_page_config(layout="wide")
+
+# session state
+ss = st.session_state
+ss["refresh"] = datetime.datetime.now()
+if "initialized" not in ss:
+    ss["initialized"] = True
+    ss["who"] = ["Pračka", "Jezevec"]
+    ss["what"] = []
+    ss["whom"] = []
+st.write(st.session_state)
+
+st.header("Sentence generator")
+
+colA, colB, colC = st.columns(3)
+
+with colA:
+    st.subheader("Kdo")
+<strong>    for word in ss["who"]:
+</strong><strong>        st.text(word)
+</strong><strong>
+</strong><strong>with colB:
+</strong><strong>    st.subheader("Co")
+</strong><strong>
+</strong><strong>with colC:
+</strong><strong>    st.subheader("Komu/Čemu")
+</strong><strong>
+</strong><strong>btnGenerate = st.button("G e n e r u j   v ě t u")
+</strong></code></pre>
+
+Na řádcích 7-15 se staráme o session-state (vysvětleno výše). Na řádku 17 vkládáme nadpis. Na řádku 19 vytváříme 3 sloupce. Do každého sloupce vložíme hlavičku (řádky 22, 27, 30). Do prvního sloupce navíc vložíme i výpis všech položek, které již jsou zadány - procházíme kolekci `ss["who"]` (řádek 23) a vypisujeme každé slovo (řádek 24). Nakonec vytvoříme tlačítko (které zatím nebude nic dělat) - řádek 32.
+
+
+
+
+
+
+
+
+
+
 
 ```python
 import datetime
