@@ -56,9 +56,11 @@ hld_image = st.empty()
 
 Po obnovení stránky se její obsah nezmění (nepřibyl žádný vizuálně reprezentovatelný prvek).&#x20;
 
+## Vyčítání snímků z kamery/videa
+
 Do stránky nyní vložíme vyčítání dat z kamery:
 
-<pre class="language-python" data-title="camera.py" data-line-numbers><code class="lang-python"># ... předchozí kód
+<pre class="language-python" data-title="camera.py - doplnění" data-line-numbers><code class="lang-python"># ... předchozí kód
 
 <strong># cap = cv2.VideoCapture(0) # vyčítání z kamery PC/NB
 </strong>cap = cv2.VideoCapture("C:\\Users\\Vajgl\\Downloads\\Mlha1.mp4") # vyčítání z videa
@@ -66,17 +68,61 @@ Do stránky nyní vložíme vyčítání dat z kamery:
 </strong><strong>while True:
 </strong><strong>    ret, frame = cap.read()
 </strong><strong>    if ret is False:
-</strong><strong>        st.text("Chyba nebo konec videa.")
-</strong><strong>        break
-</strong>
-    hld_image.image(frame)
-</code></pre>
+</strong><strong>        cap.release()
+</strong>        st.text("Chyba nebo konec videa.")
+        break
+
+<strong>    hld_image.image(frame)
+</strong></code></pre>
 
 &#x20;Vytvoříme proměnnou `cap` (řádek 3/4), která načítá video zdroj  - řádek 3 ukazuje, jak otevří t připojení ke kameře na NB/PC, řádek 4 definuje jako zdroj video MP4
 
-Následně v "nekonečné smyčce" (řádek 6) provádíme vyčtení snímku z kamery (řádek 7). Pokud se snímek nepodařilo načíst (proměnná `ret` je `False`, řádek 8), vypíšeme na stránku chybu a smyčku ukončíme. Pokud se snímek načíst povedlo, pokračujeme řádkem 12, kde vložíme snímek `frame` jako obrázek do dříve vytvořeného zástupného prvku.
+Následně v "nekonečné smyčce" (řádek 6) provádíme vyčtení snímku z kamery (řádek 7). Pokud se snímek nepodařilo načíst (proměnná `ret` je `False`, řádek 8), uvolníme připojení ke kameře, vypíšeme na stránku chybu a smyčku ukončíme. Pokud se snímek načíst povedlo, pokračujeme řádkem 13, kde vložíme snímek `frame` jako obrázek do dříve vytvořeného zástupného prvku.
 
 Pokud nyní kód spustíme, uvidíme postupně zobrazované video.
+
+Video však bude mít zvláštní barvy. Je to proto, že knihovna "cv2" vyčítá snímky ve formátu BGR (modrá-zelená-červená), ale zobrazování dat pracuje v klasickém modelu RGB (červená-zelená-modrá).  Proto musíme ještě před zobrazení vložit řádek provádějící převod z jednoho barevného modelu na druhý:
+
+{% code title="camera.py - doplnění" lineNumbers="true" %}
+```python
+# ... předchozí kód
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    hld_image.image(frame)
+```
+{% endcode %}
+
+Výsledný kód souboru tedy bude:
+
+{% code title="camera.py - úplný kód" lineNumbers="true" %}
+```python
+import streamlit as st
+import cv2
+import numpy as np
+
+st.header("Camera demo")
+
+hld_image = st.empty()
+
+
+#cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("C:\\Users\\Vajgl\\Downloads\\Mlha1.mp4")
+
+while True:
+    ret, frame = cap.read()
+    if ret is False:
+        cap.release()
+        st.text("Chyba nebo konec videa.")
+        break
+
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    hld_image.image(frame)
+```
+{% endcode %}
+
+## Zesvětlení/ztmavení videa
+
+
 
 Následně v nekonečné smyčce vyčítáme jednotlivé snímky videa a zobrazujeme je jako obrázky v prvku `hld_image`:
 
