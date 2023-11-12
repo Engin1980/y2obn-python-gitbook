@@ -237,7 +237,114 @@ btnGenerate = st.button("G e n e r u j   v ě t u")
 ```
 {% endcode %}
 
+## Druhý sloupec - vkládání slova
 
+V tomto sloupci přidáme smazání hodnoty textového pole po stisku tlačítka.
+
+Jak jsme si řekli, pokud se změní hodnota textového pole, tato změna se projeví v `session_state`. Naším úkolem bude nyní podchytit tuto změnu nahoře na stránce - při překreslování stránky se podíváme, zda nebylo stisknuto tlačítko, a pokud ano, vezmeme si hodnotu z odpovídajícího textového pole, vložíme ji do seznamu slov a následně textovému poli smažeme obsah.
+
+Nejdříve potřebujeme vytvořit textové pole a tlačítko:
+
+{% code lineNumbers="true" %}
+```python
+with colB:
+    st.subheader("Co")
+
+    colBtxt, colBbtn = st.columns(2)
+    with colBtxt:
+        st.text_input("Nové 'kdo'", label_visibility="collapsed", key="txt_what")
+    with colBbtn:
+        btn_who = st.button("Vlož", key="btn_what")
+
+    for word in ss["what"]:
+        st.text(word)
+```
+{% endcode %}
+
+Upravujeme sloupec B. Vložíme do něj opět dva pod-sloupce (řádek 4). Do prvního vložíme txtové pole (řádek 6), nevracíme si však jeho hodnotu (všimněte si, že tam není žádné "what=st.text\_input(...)"), nýbrž však textovému poli přiřadíme pevně klíč - `key="txt_what"`.  (Nemůžeme použít klíč "what", protože ten už používáme por kolekci.) Obdobně postupujeme u tlačítka - řádek 8. Nakonec nezapomeneme doplnit vypsání všech hodnot se seznamu "what".
+
+Pokračovat budeme obsloužením stisku tlačítka. Tlačítko máme v klíču `btn_what`, proto nahoře (!) v kódu před vykreslením prvků provedeme obsloužení události tlačítka (pokud nastala) - kód vkládáme před vložením hlavičky `st.header(...)`:
+
+{% code lineNumbers="true" %}
+```python
+if "btn_what" in ss and ss["btn_what"]:
+    ss["what"].append(ss["txt_what"])
+    ss["txt_what"] = ""
+```
+{% endcode %}
+
+Řádek 1 zkontroluje, zda se v `session_state` nachází klíč tlačítka a zda je pravdivý - pokud ano, tlačítko bylo stisknuto. V tom případě přidáme text textového pole do listu slov (řádek 2) a textové pole vyprázdníme (řádek 3).
+
+Aktuální výsledný kód:
+
+{% code title="sentence_generator.py" lineNumbers="true" %}
+```python
+import streamlit as st
+import datetime
+import random
+
+st.set_page_config(layout="wide")
+
+# session state
+ss = st.session_state
+ss["refresh"] = datetime.datetime.now()
+if "initialized" not in ss:
+    ss["initialized"] = True
+    ss["who"] = ["Pračka", "Jezevec"]
+    ss["what"] = []
+    ss["whom"] = []
+st.write(st.session_state)
+
+if "btn_what" in ss and ss["btn_what"]:
+    ss["what"].append(ss["txt_what"])
+    ss["txt_what"] = ""
+
+st.header("Sentence generator")
+
+colA, colB, colC = st.columns(3)
+
+with colA:
+    st.subheader("Kdo")
+
+    colAtxt, colAbtn = st.columns(2)
+    with colAtxt:
+        who = st.text_input("Nové 'kdo'", label_visibility="collapsed")
+    with colAbtn:
+        btn_who = st.button("Vlož")
+        if btn_who:
+            ss["who"].append(who)
+
+    for word in ss["who"]:
+        st.text(word)
+
+with colB:
+    st.subheader("Co")
+
+    colBtxt, colBbtn = st.columns(2)
+    with colBtxt:
+        st.text_input("Nové 'co'", label_visibility="collapsed", key="txt_what")
+    with colBbtn:
+        btn_who = st.button("Vlož", key="btn_what")
+
+    for word in ss["what"]:
+        st.text(word)
+
+
+with colC:
+    st.subheader("Komu/Čemu")
+
+btnGenerate = st.button("G e n e r u j   v ě t u")
+
+```
+{% endcode %}
+
+## Třetí sloupec - vkládání slova
+
+bubla
+
+## Generování náhodné věty na stisk tlačítka
+
+dudle
 
 
 
