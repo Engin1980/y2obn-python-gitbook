@@ -1,3 +1,10 @@
+---
+description: >-
+  V této sekci si vytvoříme jednoduchou dětskou hru - generátor vět. Na vstupu
+  se nejdříve určí množina slov - podmět, přísudek, předmět. Následně se na
+  stisk tlačítka z daného zadání generují náhodné v
+---
+
 # Generátor vět
 
 
