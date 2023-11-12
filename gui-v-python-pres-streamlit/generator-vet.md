@@ -151,7 +151,7 @@ with colA:
 </strong><strong>with colC:
 </strong><strong>    st.subheader("Komu/Čemu")
 </strong><strong>
-</strong><strong>btnGenerate = st.button("G e n e r u j   v ě t u")
+</strong><strong>btn_generate = st.button("G e n e r u j   v ě t u")
 </strong></code></pre>
 
 Na řádcích 7-15 se staráme o session-state (vysvětleno výše). Na řádku 17 vkládáme nadpis. Na řádku 19 vytváříme 3 sloupce. Do každého sloupce vložíme hlavičku (řádky 22, 27, 30). Do prvního sloupce navíc vložíme i výpis všech položek, které již jsou zadány - procházíme kolekci `ss["who"]` (řádek 23) a vypisujeme každé slovo (řádek 24). Nakonec vytvoříme tlačítko (které zatím nebude nic dělat) - řádek 32.
@@ -233,7 +233,7 @@ with colB:
 with colC:
     st.subheader("Komu/Čemu")
 
-btnGenerate = st.button("G e n e r u j   v ě t u")
+btn_generate = st.button("G e n e r u j   v ě t u")
 ```
 {% endcode %}
 
@@ -333,7 +333,7 @@ with colB:
 with colC:
     st.subheader("Komu/Čemu")
 
-btnGenerate = st.button("G e n e r u j   v ě t u")
+btn_generate = st.button("G e n e r u j   v ě t u")
 
 ```
 {% endcode %}
@@ -433,74 +433,87 @@ with colC:
     for word in ss["whom"]:
         st.text(word)
 
-btnGenerate = st.button("G e n e r u j   v ě t u")
+btn_generate = st.button("G e n e r u j   v ě t u")
 
 ```
 {% endcode %}
 
 ## Generování náhodné věty na stisk tlačítka
 
-dudle
+Poslední, nyní již jednoduchou částí bude generování věty na stisk tlačítka. Pod kód tlačítka přidáme jednoduché zachycení jeho stisku:
 
-
-
-
-
-
-
+{% code lineNumbers="true" %}
 ```python
-import datetime
-import random
+btn_generate = st.button("G e n e r u j   v ě t u")
+if btn_generate:
+    who_word = get_random_word(ss["who"])
+    what_word = get_random_word(ss["what"])
+    whom_word = get_random_word(ss["whom"])
+    if who_word is None or what_word is None or whom_word is not None:
+        st.text("Nejdříve je třeba zadat slovíčka. Nelze generovat větu.")
+    else:
+        st.text(who_word + " " + what_word + " " + whom_word + ".")
+```
+{% endcode %}
 
+Pokud bylo tlačítko stisknuto (řádek 2), z každého listu vygenerujeme jedno slovo (řádky 3,4,5). Pokud je některé ze slov prázdné (podmínka řádek 6), vypíšeme, že nelze větu vygenerovat. V opačném případě vypíšeme složenou větu (řádek 9).
+
+Pro fungování kódu potřebujeme funkci `get_random_word(...)`, kterou používáme na řádcích 3,4,5. Tuto funkci vložíme úplně na  začátek kódu třídy, pod příkazy `import`:
+
+{% code lineNumbers="true" %}
+```python
+def get_random_word(list):
+    if len(list) == 0:
+        ret = None
+    else:
+        index = random.randint(0, len(list) - 1)
+        ret = list[index]
+    return ret
+```
+{% endcode %}
+
+Na řádku 1 definujeme funkci, která má jeden vstupní parametr - list slov (všimněte si jeho předávání v předchozím výpisu kódu). Nejdříve zkontrolujeme, zda je list prázdný (řádek 2). Pokud ano, budeme vracet prázdnou hodnotu `None` (řádek 3), Pokud je list neprázdný, vygenerujeme náhodný index - celé číslo v rozsahu 0 ... počet\_položek\_list - 1 (řádek 5). Následně budeme vracet toto slovo (řádek 6). Na řádku 7 vrátíme výsledek z funkce.
+
+Tím je aplikace hotova. Výsledný kód:
+
+{% code title="sentence_generator.py" lineNumbers="true" %}
+```python
 import streamlit as st
 import datetime
 import random
 
+
+def get_random_word(list):
+    if len(list) == 0:
+        ret = None
+    else:
+        index = random.randint(0, len(list) - 1)
+        ret = list[index]
+    return ret
+
+
 st.set_page_config(layout="wide")
 
-st.header("Sentence generator")
-
+# session state
 ss = st.session_state
 ss["refresh"] = datetime.datetime.now()
-
-st.write(st.session_state)
-st.write(ss["refresh"])
-
-
-def get_random_item_from_list(lst) -> str:
-    index = random.randint(0, len(lst) - 1)
-    ret = lst[index]
-    return ret
-
-
-def generate_sentence():
-    ret = (get_random_item_from_list(ss["who"])
-           + " " + get_random_item_from_list(ss["what"])
-           + " " + get_random_item_from_list(ss["whom"])
-           + ".")
-    return ret
-
-
 if "initialized" not in ss:
     ss["initialized"] = True
+    ss["who"] = ["Pračka", "Jezevec"]
+    ss["what"] = []
+    ss["whom"] = []
+st.write(st.session_state)
 
-    ss["who"] = []
-    ss["what"] = [
-        "skáče", "mačká", "roluje"
-    ]
-    ss["whom"] = ["ručník", "hrudku másla", "citrón"]
-    ss["who"].append("Lampička")
-    ss["who"].append("Auto")
-    ss["who"].append("Tráva")
+if "btn_what" in ss and ss["btn_what"]:
+    ss["what"].append(ss["txt_what"])
+    ss["txt_what"] = ""
 
-if "btnWhat" in ss:
-    if ss["btnWhat"]:
-        ss["what"].append(ss["txtWhat"])
-        ss["txtWhat"] = ""
+if "txt_whom" in ss and len(ss["txt_whom"]) > 0:
+    ss["whom"].append(ss["txt_whom"])
+    ss["txt_whom"] = ""
 
-if "txtWhom" in ss and len(ss["txtWhom"]) > 0:
-    ss["whom"].append(ss["txtWhom"])
-    ss["txtWhom"] = ""
+# user interface
+st.header("Sentence generator")
 
 colA, colB, colC = st.columns(3)
 
@@ -508,39 +521,42 @@ with colA:
     st.subheader("Kdo")
 
     colAtxt, colAbtn = st.columns(2)
-
     with colAtxt:
         who = st.text_input("Nové 'kdo'", label_visibility="collapsed")
     with colAbtn:
-        if st.button("Vlož"):
+        btn_who = st.button("Vlož")
+        if btn_who:
             ss["who"].append(who)
 
-    for source in ss["who"]:
-        st.text(source)
+    for word in ss["who"]:
+        st.text(word)
 
 with colB:
     st.subheader("Co")
 
     colBtxt, colBbtn = st.columns(2)
-
     with colBtxt:
-        what = st.text_input("Nove 'co'", label_visibility="collapsed", key="txtWhat")
+        st.text_input("Nové 'co'", label_visibility="collapsed", key="txt_what")
     with colBbtn:
-        st.button("Vlož", key="btnWhat")
+        btn_who = st.button("Vlož", key="btn_what")
 
-    for source in ss["what"]:
-        st.text(source)
+    for word in ss["what"]:
+        st.text(word)
 
 with colC:
-    st.subheader("Komu")
+    st.subheader("Komu/Čemu")
+    st.text_input("Nové 'komu/čemu'", label_visibility="collapsed", key="txt_whom")
+    for word in ss["whom"]:
+        st.text(word)
 
-    what = st.text_input("Nove 'komu'", label_visibility="collapsed", key="txtWhom")
-
-    for source in ss["whom"]:
-        st.text(source)
-
-btnGenerate = st.button("G e n e r u j")
-if btnGenerate:
-    st.text(generate_sentence())
-
+btn_generate = st.button("G e n e r u j   v ě t u")
+if btn_generate:
+    who_word = get_random_word(ss["who"])
+    what_word = get_random_word(ss["what"])
+    whom_word = get_random_word(ss["whom"])
+    if who_word is None or what_word is None or whom_word is not None:
+        st.text("Nejdříve je třeba zadat slovíčka. Nelze generovat větu.")
+    else:
+        st.text(who_word + " " + what_word + " " + whom_word + ".")
 ```
+{% endcode %}
