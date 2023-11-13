@@ -117,5 +117,28 @@ Na řádcích 11-13 vytváříme vstupní textová pole a jejich hodnoty si ukl�
 
 ## Příklad: Výpočet počtu dní života
 
+Následuje jednoduchý příklad, ve kterém uživatel zadá datum narození a vypíše se jeho věk. Příklad demonstruje použití klasické funkce ve spolupráci s prostředím streamlit:
 
+{% code title="main.py" lineNumbers="true" %}
+```python
+import datetime
+import streamlit as st
+
+st.header("Výpočet věku")
+
+def get_years_from_now(other_date : datetime.date) -> int:
+    from dateutil.relativedelta import relativedelta
+    difference_in_years = relativedelta(datetime.date.today(), other_date).years
+    return difference_in_years
+
+
+ctr_date = st.date_input("Zadejte datum narození", 
+                         min_value=datetime.datetime(1900,1,1))
+if st.button("Potvrdit zadání"):
+    st.text("Narodil jste se " + ctr_date.strftime("%Y %B %d"))
+    st.text("Je vám " + str(get_years_from_now(ctr_date)) + " let.")
+```
+{% endcode %}
+
+Nejdříve přeskočíme k rozhraní - na řádku 12 se definuje vstupní prvek pro datum. Protože chceme definovat vlastní minimální hodnotu, vkládáme také atribut "min\_value" jako hodnotu datumu (viz import řádek 1) - řádek 13. Následně zároveň generujeme tlačítko i se dotazujeme na jeho stisknutí (řádek 13 - srovnejte s předchozími variantami, kdy se tlačítko na jednom řádku vytvoří a na druhém se kontroluje, zda se stisklo). Pokud bylo tlačítko stisknuto, vypíšeme datum - využíváme formátovacích funkcí datumu a času (viz například [https://www.programiz.com/python-programming/datetime/strftime](https://www.programiz.com/python-programming/datetime/strftime)) - řádek 15. Pro výpočet věku využijeme vlastní funkci, která počítá rozdíl dvou datumů - funkce se volá na řádku 16 a definuje se na řádcích 6-9.
 
